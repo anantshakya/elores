@@ -1,0 +1,7 @@
+frontend/node_modules/
+frontend/dist/
+backend/vendor/
+backend/.env
+backend/writable/database/*.db
+backend/writable/logs/*
+node_modules/

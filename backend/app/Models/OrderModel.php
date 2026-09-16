@@ -1,0 +1,2 @@
+<?php namespace App\Models; use CodeIgniter\Model;
+class OrderModel extends Model {protected $table='orders';protected $primaryKey='id';protected $returnType='array';protected $allowedFields=['order_number','invoice_number','customer_id','name','email','phone','address','city','state','pincode','payment_method','subtotal','shipping','discount','coupon_code','total','status','tracking_number','tracking_url','payment_status'];protected $useTimestamps=true;}

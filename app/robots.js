@@ -1,0 +1,1 @@
+export default function robots(){const site=process.env.NEXT_PUBLIC_SITE_URL||'https://elores.in';return {rules:[{userAgent:'*',allow:'/',disallow:['/admin/','/account','/cart','/checkout','/wishlist','/login','/register','/forgot-password','/order-success/']}],sitemap:`${site}/sitemap.xml`,host:site};}

@@ -1,0 +1,17 @@
+{
+  "name": "elores-next-frontend",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "15.5.7",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "lucide-react": "^0.544.0",
+    "sweetalert2": "^11.22.5"
+  }
+}
