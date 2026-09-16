@@ -5,3 +5,4 @@ backend/.env
 backend/writable/database/*.db
 backend/writable/logs/*
 node_modules/
+.next/

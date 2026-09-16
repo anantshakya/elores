@@ -1,4 +1,5 @@
 import './globals.css';
+import { Suspense } from 'react';
 import ClientShell from './_components/ClientShell.jsx';
 
 export const metadata = {
@@ -12,5 +13,5 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  return <html lang="en"><body><ClientShell>{children}</ClientShell></body></html>;
+  return <html lang="en"><body><Suspense><ClientShell>{children}</ClientShell></Suspense></body></html>;
 }
