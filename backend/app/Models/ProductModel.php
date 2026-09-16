@@ -1,2 +1,0 @@
-<?php namespace App\Models; use CodeIgniter\Model;
-class ProductModel extends Model {protected $table='products';protected $primaryKey='id';protected $returnType='array';protected $allowedFields=['category_id','name','slug','gender','price','sale_price','stock','material','description','badge','active','sku','short_description','meta_title','meta_description','meta_keywords','image','featured','is_new','care_instructions','dimensions','weight','hsn_code','tax_rate','video_url'];protected $useTimestamps=true;}

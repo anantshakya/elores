@@ -32,7 +32,7 @@ export default function LoginPage() {
         {err && <div className="error">{err}</div>}
         <Field label="Email" k="email" type="email" f={f} set={setF} />
         <Field label="Password" k="password" type="password" f={f} set={setF} />
-        <button className="btn dark full">LOGIN</button>
+        <button className="btn dark full">LOGIN New</button>
         <p>
           <Link to="/forgot-password">Forgot password?</Link> ·{" "}
           <Link to="/register">Create account</Link>

@@ -1,6 +1,0 @@
-<?php namespace App\Controllers\Api; use App\Models\CategoryModel;
-class AdminCategories extends BaseApi {
- public function create(){if(!$this->adminCan('categories','add'))return $this->ok(['message'=>'Forbidden'],403);$d=$this->json();if(empty($d['name']))return $this->ok(['message'=>'Name required'],422);(new CategoryModel())->insert(['name'=>$d['name'],'slug'=>url_title($d['name'],'-',true),'active'=>isset($d['active'])?(int)$d['active']:1]);return $this->ok(['message'=>'Category added'],201);}
- public function update($id=null){if(!$this->adminCan('categories','edit'))return $this->ok(['message'=>'Forbidden'],403);$d=$this->json();$row=[];if(isset($d['name'])){$row['name']=$d['name'];$row['slug']=url_title($d['slug']??$d['name'],'-',true);}if(isset($d['active']))$row['active']=(int)$d['active'];(new CategoryModel())->update((int)$id,$row);return $this->ok(['message'=>'Category updated']);}
- public function delete($id=null){if(!$this->adminCan('categories','delete'))return $this->ok(['message'=>'Forbidden'],403);if(db_connect()->table('products')->where('category_id',(int)$id)->countAllResults())return $this->ok(['message'=>'Category has products. Move/delete them first.'],422);(new CategoryModel())->delete((int)$id);return $this->ok(['message'=>'Category deleted']);}
-}
