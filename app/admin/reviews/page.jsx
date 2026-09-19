@@ -2,8 +2,10 @@
 import { useEffect, useState } from "react";
 import PageHeader from "@/app/admin/_components/PageHeader.jsx";
 import EmptyTable from "@/app/admin/_components/EmptyTable.jsx";
+import ActionButtons from "@/app/admin/_components/ActionButtons.jsx";
 import { adminApi } from "@/app/admin/_lib/api.js";
 import { useAdminToast } from "@/app/admin/_components/AdminToast.jsx";
+import { confirmDelete } from "@/app/admin/_lib/swal.js";
 import {
   useTableData,
   TableToolbar,
@@ -16,7 +18,7 @@ export default function ReviewPage() {
 
   const load = () => {
     adminApi("/admin/reviews")
-      .then((d) => setRows(d.data || []))
+      .then((d) => setRows((d.data || []).filter((x) => x.is_deleted !== 'deleted')))
       .catch((e) => toast.show(e.message, "error"));
   };
 
@@ -33,6 +35,17 @@ export default function ReviewPage() {
         body: JSON.stringify({ status }),
       });
       toast.show(d.message || "Review updated");
+      load();
+    } catch (e) {
+      toast.show(e.message, "error");
+    }
+  }
+
+  async function remove(r) {
+    if (!(await confirmDelete(`Delete review by ${r.name}? (Status will change to deleted and hidden from frontend)`))) return;
+    try {
+      const d = await adminApi(`/admin/reviews/${r.id}`, { method: "DELETE" });
+      toast.show(d.message || "Review marked as deleted");
       load();
     } catch (e) {
       toast.show(e.message, "error");
@@ -64,12 +77,13 @@ export default function ReviewPage() {
                 <th>Rating</th>
                 <th>Review</th>
                 <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {!table.paginatedRows.length && (
                 <EmptyTable
-                  colSpan={6}
+                  colSpan={7}
                   text={
                     table.search
                       ? `No reviews matching "${table.search}"`
@@ -80,7 +94,7 @@ export default function ReviewPage() {
               {table.paginatedRows.map((r, i) => (
                 <tr key={r.id}>
                   <td>{table.startIndex + i}</td>
-                  <td>{r.product_name}</td>
+                  <td><strong>{r.product_name}</strong></td>
                   <td>{r.name}</td>
                   <td>{r.rating}/5</td>
                   <td className="wideCell">{r.review}</td>
@@ -93,6 +107,11 @@ export default function ReviewPage() {
                       <option value="approved">Approved</option>
                       <option value="rejected">Rejected</option>
                     </select>
+                  </td>
+                  <td>
+                    <ActionButtons
+                      onDelete={() => remove(r)}
+                    />
                   </td>
                 </tr>
               ))}

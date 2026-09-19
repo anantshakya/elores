@@ -3,9 +3,17 @@ import ProductPage from './ProductClient.jsx';
 const API = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://elores.in';
 async function getProduct(slug){
-  const r=await fetch(`${API}/products/${encodeURIComponent(slug)}`,{next:{revalidate:300}});
-  if(!r.ok) return null;
-  const j=await r.json(); return j.data||null;
+  try {
+    const r=await fetch(`${API}/products/${encodeURIComponent(slug)}`,{next:{revalidate:300}});
+    if(!r.ok) return null;
+    const text = await r.text();
+    if (!text || text.trim().startsWith('<')) return null;
+    const j = JSON.parse(text);
+    return j.data||null;
+  } catch (e) {
+    console.error('getProduct error:', e);
+    return null;
+  }
 }
 export async function generateMetadata({params}){
   const {slug}=await params; const p=await getProduct(slug); if(!p) return {title:'Product not found',robots:{index:false}};

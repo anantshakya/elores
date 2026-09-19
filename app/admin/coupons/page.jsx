@@ -21,7 +21,7 @@ export default function CouponListPage() {
 
   const load = () => {
     adminApi("/admin/coupons")
-      .then((d) => setRows(d.data || []))
+      .then((d) => setRows((d.data || []).filter((x) => x.is_deleted !== 'deleted')))
       .catch((e) => toast.show(e.message, "error"));
   };
 
@@ -32,10 +32,10 @@ export default function CouponListPage() {
   const table = useTableData(rows, { pageSize: 10 });
 
   async function remove(r) {
-    if (!(await confirmDelete(`Delete coupon ${r.code}?`))) return;
+    if (!(await confirmDelete(`Delete coupon ${r.code}? (Status will change to deleted and hidden from frontend)`))) return;
     try {
       const d = await adminApi(`/admin/coupons/${r.id}`, { method: "DELETE" });
-      toast.show(d.message || "Coupon deleted");
+      toast.show(d.message || "Coupon marked as deleted");
       load();
     } catch (e) {
       toast.show(e.message, "error");
@@ -54,7 +54,7 @@ export default function CouponListPage() {
         <TableToolbar
           search={table.search}
           setSearch={table.setSearch}
-          placeholder="Search coupons by code or type..."
+          placeholder="Search coupons by code..."
           pageSize={table.pageSize}
           setPageSize={table.setPageSize}
           total={table.total}

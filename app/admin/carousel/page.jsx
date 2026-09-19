@@ -21,7 +21,7 @@ export default function BannerListPage() {
 
   const load = () => {
     adminApi("/admin/banners")
-      .then((d) => setRows(d.data || []))
+      .then((d) => setRows((d.data || []).filter((x) => x.is_deleted !== 'deleted')))
       .catch((e) => toast.show(e.message, "error"));
   };
 
@@ -32,10 +32,10 @@ export default function BannerListPage() {
   const table = useTableData(rows, { pageSize: 10 });
 
   async function remove(r) {
-    if (!(await confirmDelete(`Delete banner ${r.title}?`))) return;
+    if (!(await confirmDelete(`Delete banner ${r.title}? (Status will change to deleted and hidden from frontend)`))) return;
     try {
       const d = await adminApi(`/admin/banners/${r.id}`, { method: "DELETE" });
-      toast.show(d.message || "Banner deleted");
+      toast.show(d.message || "Banner marked as deleted");
       load();
     } catch (e) {
       toast.show(e.message, "error");
@@ -54,7 +54,7 @@ export default function BannerListPage() {
         <TableToolbar
           search={table.search}
           setSearch={table.setSearch}
-          placeholder="Search slides by title or button text..."
+          placeholder="Search slides by title..."
           pageSize={table.pageSize}
           setPageSize={table.setPageSize}
           total={table.total}
@@ -66,7 +66,7 @@ export default function BannerListPage() {
                 <th>Sr No</th>
                 <th>Image</th>
                 <th>Title</th>
-                <th>CTA</th>
+                <th>Button</th>
                 <th>Order</th>
                 <th>Status</th>
                 <th>Action</th>

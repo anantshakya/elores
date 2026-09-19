@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import NextLink from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams, useParams as useNextParams } from 'next/navigation';
 
 export function Link({ to, href, children, ...props }) {
   return <NextLink href={to || href || '/'} {...props}>{children}</NextLink>;
@@ -25,6 +25,25 @@ export function useLocation() {
   const search = searchParams?.toString() ? `?${searchParams.toString()}` : '';
   return { pathname, search };
 }
-export { useParams } from 'next/navigation';
+export function useParams() {
+  const nextParams = useNextParams();
+  const pathname = usePathname() || '';
+  const searchParams = useSearchParams();
+
+  const params = { ...(nextParams || {}) };
+
+  if (!params.id) {
+    if (searchParams?.get('id')) {
+      params.id = searchParams.get('id');
+    } else {
+      const match = pathname.match(/\/(\d+)(?:\/edit)?$/);
+      if (match && match[1]) {
+        params.id = match[1];
+      }
+    }
+  }
+
+  return params;
+}
 export function Navigate({to, replace=false}) { const router=useRouter(); React.useEffect(()=>{ replace ? router.replace(to) : router.push(to); },[to,replace,router]); return null; }
 export function Outlet(){ return null; }

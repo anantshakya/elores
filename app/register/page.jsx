@@ -1,44 +1,28 @@
 'use client';
-import React, { useState } from "react";
-import { Link, useNavigate } from "@/app/_lib/router-compat";
-import {
-  api,
-  AuthShell,
-  Field,
-  SEO,
-} from "@/app/_components/StorefrontCore.jsx";
+import { useEffect } from "react";
+import { useAuthModal } from "@/app/_components/AuthModal.jsx";
+import { useNavigate } from "@/app/_lib/router-compat";
+import { SEO } from "@/app/_components/StorefrontCore.jsx";
 
 export default function RegisterPage() {
+  const { openAuth } = useAuthModal();
   const nav = useNavigate();
-  const [f, setF] = useState({ name: "", email: "", phone: "", password: "" }),
-    [err, setErr] = useState("");
-  const submit = async (e) => {
-    e.preventDefault();
-    try {
-      const d = await api("/register", {
-        method: "POST",
-        body: JSON.stringify(f),
-      });
-      localStorage.setItem("elores_customer_token", d.token);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && localStorage.getItem("elores_customer_token")) {
       nav("/account");
-    } catch (x) {
-      setErr(x.message);
+    } else {
+      openAuth("register");
     }
-  };
+  }, []);
+
   return (
-    <AuthShell title="Create your Elores account">
-      <SEO title="Register | Elores" />
-      <form onSubmit={submit}>
-        {err && <div className="error">{err}</div>}
-        <Field label="Name" k="name" f={f} set={setF} />
-        <Field label="Email" k="email" type="email" f={f} set={setF} />
-        <Field label="Phone" k="phone" f={f} set={setF} />
-        <Field label="Password" k="password" type="password" f={f} set={setF} />
-        <button className="btn dark full">REGISTER</button>
-        <p>
-          Already registered? <Link to="/login">Login</Link>
-        </p>
-      </form>
-    </AuthShell>
+    <>
+      <SEO title="Create Account | Elores Jewellery" />
+      <div style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#786F68", fontSize: "14px" }}>Opening account creation...</p>
+      </div>
+    </>
   );
 }
+

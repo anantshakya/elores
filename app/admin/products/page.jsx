@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import PageHeader from "@/app/admin/_components/PageHeader.jsx";
 import ActionButtons from "@/app/admin/_components/ActionButtons.jsx";
 import EmptyTable from "@/app/admin/_components/EmptyTable.jsx";
-import { adminApi, money } from "@/app/admin/_lib/api.js";
+import { adminApi, money, getImageUrl } from "@/app/admin/_lib/api.js";
 import { confirmDelete } from "@/app/admin/_lib/swal.js";
 import { useAdminToast } from "@/app/admin/_components/AdminToast.jsx";
 import { useAdminAuth } from "@/app/admin/_components/AdminAuth.jsx";
@@ -14,29 +14,28 @@ import {
   TablePagination,
 } from "@/app/admin/_components/TablePagination.jsx";
 
-export default function ProductListPage() {
-  const [rows, setRows] = useState([]);
+export default function ProductsPage() {
+  const [products, setProducts] = useState([]);
   const toast = useAdminToast();
   const auth = useAdminAuth();
 
   const load = () => {
     adminApi("/admin/products")
-      .then((d) => setRows(d.data || []))
+      .then((d) => setProducts((d.data || []).filter((x) => x.is_deleted !== 'deleted')))
       .catch((e) => toast.show(e.message, "error"));
   };
+
   useEffect(() => {
     load();
   }, []);
 
-  const table = useTableData(rows, { pageSize: 10 });
+  const table = useTableData(products, { pageSize: 10 });
 
   async function remove(row) {
-    if (!(await confirmDelete(`Delete ${row.name}?`))) return;
+    if (!(await confirmDelete(`Delete product "${row.name}"? (Status will change to deleted)`))) return;
     try {
-      const d = await adminApi(`/admin/products/${row.id}`, {
-        method: "DELETE",
-      });
-      toast.show(d.message || "Product deleted");
+      const d = await adminApi(`/admin/products/${row.id}`, { method: "DELETE" });
+      toast.show(d.message || "Product marked as deleted");
       load();
     } catch (e) {
       toast.show(e.message, "error");
@@ -47,7 +46,7 @@ export default function ProductListPage() {
     <>
       <PageHeader
         title="Products"
-        subtitle="Manage products, stock, images and SEO."
+        subtitle="Manage product catalog, inventory, and gallery."
         addTo="/admin/products/new"
         canAdd={can(auth, "products", "add")}
       />
@@ -55,7 +54,7 @@ export default function ProductListPage() {
         <TableToolbar
           search={table.search}
           setSearch={table.setSearch}
-          placeholder="Search products by name, SKU or category..."
+          placeholder="Search products..."
           pageSize={table.pageSize}
           setPageSize={table.setPageSize}
           total={table.total}
@@ -92,7 +91,7 @@ export default function ProductListPage() {
                     {row.image ? (
                       <img
                         className="tableThumb"
-                        src={row.image}
+                        src={getImageUrl(row.image)}
                         alt={row.name}
                       />
                     ) : (

@@ -1,5 +1,5 @@
 'use client';
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "@/app/_lib/router-compat";
 import { Minus, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import {
@@ -11,21 +11,46 @@ import {
 } from "@/app/_components/StorefrontCore.jsx";
 
 export default function CartPage() {
-  const { cart, updateQty } = useStore();
+  const [mounted, setMounted] = useState(false);
+  const { cart, updateQty, isLoaded } = useStore();
   const nav = useNavigate();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Avoid hydration mismatch while SSR or during initial client mount
+  if (!mounted || (isLoaded !== undefined && !isLoaded)) {
+    return (
+      <section className="section">
+        <SEO title="Shopping Bag | Elores" />
+        <div className="shopTitle">
+          <small>SHOPPING BAG</small>
+          <h1>Your selections</h1>
+        </div>
+        <div style={{ minHeight: "220px", display: "flex", alignItems: "center", justifyContent: "center", color: "#8C8279" }}>
+          <p>Loading your shopping bag...</p>
+        </div>
+      </section>
+    );
+  }
+
   const subtotal = cart.reduce(
     (s, x) => s + Number(x.sale_price || x.price) * x.qty,
     0,
   );
+
   if (!cart.length)
     return (
       <section className="section">
+        <SEO title="Shopping Bag | Elores" />
         <div className="shopTitle">
           <h1>Your bag</h1>
         </div>
         <Empty text="Your bag is empty." />
       </section>
     );
+
   return (
     <section className="section cartPage">
       <SEO title="Shopping Bag | Elores" />

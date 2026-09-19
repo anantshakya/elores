@@ -2,7 +2,14 @@
 import { Edit3, Trash2, FileText, Eye } from "lucide-react";
 import { Link } from "@/app/_lib/router-compat.jsx";
 
-export default function ActionButtons({ editTo, viewTo, invoiceTo, onDelete, canEdit = true, canDelete = true }) {
+export default function ActionButtons({
+  editTo,
+  viewTo,
+  invoiceTo,
+  onDelete,
+  canEdit = true,
+  canDelete = true,
+}) {
   return (
     <div className="tableActions">
       {viewTo && (
@@ -21,7 +28,12 @@ export default function ActionButtons({ editTo, viewTo, invoiceTo, onDelete, can
         </Link>
       )}
       {onDelete && canDelete && (
-        <button className="iconAction delete" type="button" onClick={onDelete} title="Delete">
+        <button
+          className="iconAction delete"
+          type="button"
+          onClick={onDelete}
+          title="Delete"
+        >
           <Trash2 size={16} />
         </button>
       )}

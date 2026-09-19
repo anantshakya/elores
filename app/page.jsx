@@ -18,17 +18,24 @@ async function getHomeProducts() {
       cache: 'no-store',
     });
 
-    if (!response.ok) throw new Error(`Products API returned ${response.status}`);
-    let json = await response.json();
+    let json = response.ok ? await response.json() : {};
     let products = Array.isArray(json.data) ? json.data : [];
 
-    // A fresh catalogue may not have featured flags yet. Show normal products
-    // instead of rendering an empty homepage.
-    if (!products.length) {
-      response = await fetch(`${API}/products?limit=8`, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`Products API returned ${response.status}`);
-      json = await response.json();
-      products = Array.isArray(json.data) ? json.data : [];
+    // If fewer than 8 featured items exist, top up with latest products
+    if (products.length < 8) {
+      let allRes = await fetch(`${API}/products?limit=12`, { cache: 'no-store' });
+      if (allRes.ok) {
+        let allJson = await allRes.json();
+        let allProducts = Array.isArray(allJson.data) ? allJson.data : [];
+        const existingIds = new Set(products.map((p) => p.id));
+        for (const p of allProducts) {
+          if (!existingIds.has(p.id)) {
+            products.push(p);
+            existingIds.add(p.id);
+          }
+          if (products.length >= 8) break;
+        }
+      }
     }
 
     return products;

@@ -19,10 +19,12 @@ import {
 import { NavLink, Outlet, Link } from "@/app/_lib/router-compat.jsx";
 import { useAdminAuth } from "@/app/admin/_components/AdminAuth.jsx";
 import { visibleMenu } from "@/app/admin/_lib/permissions.js";
+import { adminApi } from "@/app/admin/_lib/api.js";
 import { useState, useRef, useEffect } from "react";
 
 const menu = [
   ["dashboard", "/admin", "Dashboard", LayoutDashboard],
+  ["analytics", "/admin/analytics", "Analytics", BarChart3],
   ["products", "/admin/products", "Products", Gem],
   ["categories", "/admin/categories", "Categories", Tags],
   ["orders", "/admin/orders", "Orders", ShoppingBag],
@@ -32,7 +34,6 @@ const menu = [
   ["reviews", "/admin/reviews", "Reviews", Star],
   ["pages", "/admin/pages", "Pages", FileText],
   ["messages", "/admin/messages", "Messages", MessageSquare],
-  ["analytics", "/admin/analytics", "Analytics", BarChart3],
   ["settings", "/admin/settings", "Settings", Settings],
   ["admin_users", "/admin/users", "Admin Users", UserCog],
 ];
@@ -96,13 +97,38 @@ function ProfileDropdown({ auth }) {
 
 export default function AdminLayout({ children }) {
   const auth = useAdminAuth();
+  const [settings, setSettings] = useState({ logo: "/elores-logo.png" });
+
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem("elores_cached_settings");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.logo) setSettings((s) => ({ ...s, logo: parsed.logo }));
+      }
+    } catch (e) {}
+
+    adminApi("/settings")
+      .then((d) => {
+        if (d?.data?.logo) {
+          setSettings((prev) => ({ ...prev, logo: d.data.logo }));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="adminApp">
       <aside className="adminSidebar">
-        <Link className="adminBrand" to="/admin">
-          <span>EL</span>
-          <strong>ELORES</strong>
+        <Link className="adminBrand" to="/admin" style={{ textDecoration: "none" }}>
+          <img
+            src={settings.logo || "/elores-logo.png"}
+            alt="Elores Admin Logo"
+            style={{ height: "38px", maxHeight: "42px", width: "auto", maxWidth: "165px", objectFit: "contain" }}
+            onError={(e) => {
+              e.target.src = "/elores-logo.png";
+            }}
+          />
         </Link>
         <nav>
           {menu.filter(([module]) => visibleMenu(auth, module)).map(([module, to, label, Icon]) => (

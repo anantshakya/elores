@@ -8,10 +8,10 @@ import {
   SEO,
 } from "@/app/_components/StorefrontCore.jsx";
 
-export default function ShopPage() {
+export default function ShopPage({ initialProducts = [] }) {
   const loc = useLocation();
   const params = new URLSearchParams(loc.search);
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(initialProducts);
   const [q, setQ] = useState(params.get("q") || "");
   const [sort, setSort] = useState("newest");
   const [min, setMin] = useState("");
@@ -74,8 +74,15 @@ export default function ShopPage() {
           <option value="name">Name</option>
         </select>
       </div>
-      <p className="count">{products.length} products</p>
-      <ProductGrid products={products} />
+      {(() => {
+        const displayProducts = (products && products.length > 0) ? products : initialProducts;
+        return (
+          <>
+            <p className="count">{displayProducts.length} products</p>
+            <ProductGrid products={displayProducts} />
+          </>
+        );
+      })()}
     </section>
   );
 }

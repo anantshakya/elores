@@ -18,7 +18,7 @@ export default function AdminUserListPage() {
 
   const load = () => {
     adminApi("/admin/users")
-      .then((d) => setRows(d.data || []))
+      .then((d) => setRows((d.data || []).filter((x) => x.is_deleted !== 'deleted')))
       .catch((x) => toast.show(x.message, "error"));
   };
 
@@ -29,10 +29,10 @@ export default function AdminUserListPage() {
   const table = useTableData(rows, { pageSize: 10 });
 
   async function remove(r) {
-    if (!(await confirmDelete(`Delete admin ${r.name}?`))) return;
+    if (!(await confirmDelete(`Delete admin ${r.name}? (Status will change to deleted)`))) return;
     try {
       const d = await adminApi(`/admin/users/${r.id}`, { method: "DELETE" });
-      toast.show(d.message || "Admin deleted");
+      toast.show(d.message || "Admin marked as deleted");
       load();
     } catch (x) {
       toast.show(x.message, "error");

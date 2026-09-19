@@ -2,7 +2,10 @@
 import { useEffect, useState } from "react";
 import PageHeader from "@/app/admin/_components/PageHeader.jsx";
 import EmptyTable from "@/app/admin/_components/EmptyTable.jsx";
+import ActionButtons from "@/app/admin/_components/ActionButtons.jsx";
 import { adminApi } from "@/app/admin/_lib/api.js";
+import { useAdminToast } from "@/app/admin/_components/AdminToast.jsx";
+import { confirmDelete } from "@/app/admin/_lib/swal.js";
 import {
   useTableData,
   TableToolbar,
@@ -11,14 +14,30 @@ import {
 
 export default function CustomerListPage() {
   const [rows, setRows] = useState([]);
+  const toast = useAdminToast();
+
+  const load = () => {
+    adminApi("/admin/customers")
+      .then((d) => setRows((d.data || []).filter((x) => x.is_deleted !== 'deleted')))
+      .catch((e) => toast.show(e.message, "error"));
+  };
 
   useEffect(() => {
-    adminApi("/admin/customers")
-      .then((d) => setRows(d.data || []))
-      .catch(() => {});
+    load();
   }, []);
 
   const table = useTableData(rows, { pageSize: 10 });
+
+  async function remove(r) {
+    if (!(await confirmDelete(`Delete customer ${r.name || r.email}? (Status will change to deleted)`))) return;
+    try {
+      const d = await adminApi(`/admin/customers/${r.id}`, { method: "DELETE" });
+      toast.show(d.message || "Customer marked as deleted");
+      load();
+    } catch (e) {
+      toast.show(e.message, "error");
+    }
+  }
 
   return (
     <>
@@ -45,12 +64,13 @@ export default function CustomerListPage() {
                 <th>Phone</th>
                 <th>Status</th>
                 <th>Joined</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {!table.paginatedRows.length && (
                 <EmptyTable
-                  colSpan={6}
+                  colSpan={7}
                   text={
                     table.search
                       ? `No customers matching "${table.search}"`
@@ -61,7 +81,7 @@ export default function CustomerListPage() {
               {table.paginatedRows.map((r, i) => (
                 <tr key={r.id}>
                   <td>{table.startIndex + i}</td>
-                  <td>{r.name}</td>
+                  <td><strong>{r.name}</strong></td>
                   <td>{r.email}</td>
                   <td>{r.phone || "—"}</td>
                   <td>
@@ -71,7 +91,12 @@ export default function CustomerListPage() {
                       {Number(r.active) ? "Active" : "Inactive"}
                     </span>
                   </td>
-                  <td>{r.created_at || "—"}</td>
+                  <td>{r.created_at ? new Date(r.created_at).toLocaleDateString() : "—"}</td>
+                  <td>
+                    <ActionButtons
+                      onDelete={() => remove(r)}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>

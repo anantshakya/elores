@@ -4,6 +4,8 @@ import PageHeader from "@/app/admin/_components/PageHeader.jsx";
 import ActionButtons from "@/app/admin/_components/ActionButtons.jsx";
 import EmptyTable from "@/app/admin/_components/EmptyTable.jsx";
 import { adminApi } from "@/app/admin/_lib/api.js";
+import { useAdminToast } from "@/app/admin/_components/AdminToast.jsx";
+import { confirmDelete } from "@/app/admin/_lib/swal.js";
 import {
   useTableData,
   TableToolbar,
@@ -12,14 +14,30 @@ import {
 
 export default function PageListPage() {
   const [rows, setRows] = useState([]);
+  const toast = useAdminToast();
+
+  const load = () => {
+    adminApi("/admin/pages")
+      .then((d) => setRows((d.data || []).filter((x) => x.is_deleted !== 'deleted')))
+      .catch((e) => toast.show(e.message, "error"));
+  };
 
   useEffect(() => {
-    adminApi("/admin/pages")
-      .then((d) => setRows(d.data || []))
-      .catch(() => {});
+    load();
   }, []);
 
   const table = useTableData(rows, { pageSize: 10 });
+
+  async function remove(r) {
+    if (!(await confirmDelete(`Delete page ${r.title}? (Status will change to deleted and hidden from frontend)`))) return;
+    try {
+      const d = await adminApi(`/admin/pages/${r.id}`, { method: "DELETE" });
+      toast.show(d.message || "Page marked as deleted");
+      load();
+    } catch (e) {
+      toast.show(e.message, "error");
+    }
+  }
 
   return (
     <>
@@ -62,7 +80,7 @@ export default function PageListPage() {
               {table.paginatedRows.map((r, i) => (
                 <tr key={r.id}>
                   <td>{table.startIndex + i}</td>
-                  <td>{r.title}</td>
+                  <td><strong>{r.title}</strong></td>
                   <td>/page/{r.slug}</td>
                   <td>
                     <span
@@ -72,7 +90,10 @@ export default function PageListPage() {
                     </span>
                   </td>
                   <td>
-                    <ActionButtons editTo={`/admin/pages/${r.id}/edit`} />
+                    <ActionButtons
+                      editTo={`/admin/pages/${r.id}/edit`}
+                      onDelete={() => remove(r)}
+                    />
                   </td>
                 </tr>
               ))}
